@@ -62,6 +62,8 @@ INTRO
         when "quit", "exit" then
           puts "exiting"
           return false
+        when /^setvar -\s*(.+)$/
+          set_variable($1)
         when /^set -(\w)\s*(\S+)/
           set_option($1, $2)
         when /^(?:(with|on)\s*(\S+))?\s*(\S.*)?/i
@@ -188,6 +190,7 @@ HELP
       # The returned object will quack (more or less) like Readline.
       def reader
         @reader ||= begin
+          #require 'rb-readline'
           require 'readline'
           Readline
         rescue LoadError
@@ -207,6 +210,14 @@ HELP
           end
         end
       end
+
+			def set_variable(opt)
+				p opt
+        opt.split(',').each { |keyvalue|
+					key, value = keyvalue.split('=')
+					@configuration.set key.to_sym, value
+				}
+			end
 
       # Set the given option to +value+.
       def set_option(opt, value)
