@@ -64,6 +64,8 @@ INTRO
           return false
         when /^setvar -\s*(.+)$/
           set_variable($1)
+        when /^desctask -\s*(.+)$/
+          desc_task($1)
         when /^set -(\w)\s*(\S+)/
           set_option($1, $2)
         when /^(?:(with|on)\s*(\S+))?\s*(\S.*)?/i
@@ -217,6 +219,49 @@ HELP
 					key, value = keyvalue.split('=')
 					@configuration.set key.to_sym, value
 				}
+			end
+
+			LINE_PADDING = 7
+			MIN_MAX_LEN  = 30
+			HEADER_LEN   = 60
+
+			def format_text(text) #:nodoc:
+				formatted = ""
+				output_columns=80
+				text.each_line do |line|
+					indentation = line[/^\s+/] || ""
+					indentation_size = indentation.split(//).inject(0) { |c,s| c + (s[0] == ?\t ? 8 : 1) }
+					line_length = output_columns - indentation_size
+					line_length = MIN_MAX_LEN if line_length < MIN_MAX_LEN
+					lines = line.strip.gsub(/(.{1,#{line_length}})(?:\s+|\Z)/, "\\1\n").split(/\n/)
+						if lines.empty?
+							formatted << "\n"
+						else
+							formatted << lines.map { |l| "#{indentation}#{l}\n" }.join
+						end
+				end
+        formatted
+      end
+
+			def desc_task(opt)
+				p opt
+				name=opt
+        task = @configuration.find_task(name)
+        if task.nil?
+          warn "The task `#{name}' does not exist."
+        else
+          puts "-" * HEADER_LEN
+          puts "cap #{name}"
+          puts "-" * HEADER_LEN
+
+          if task.description.empty?
+            puts "There is no description for this task."
+          else
+            puts format_text(task.description)
+          end
+
+          puts
+				end
 			end
 
       # Set the given option to +value+.
