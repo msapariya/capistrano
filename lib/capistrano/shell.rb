@@ -47,9 +47,23 @@ a summary of how to use the shell.
 --------------------------------------------------------------------
 INTRO
 
+			#Populate the readline history
+			if File.exists?("#{ENV['HOME']}/.cap_shell_history")
+				File.open("#{ENV['HOME']}/.cap_shell_history", 'r').each { |line|
+					reader::HISTORY << line.chomp
+				}
+			end
+
       loop do
         break if !read_and_execute
       end
+
+      #store the readline history for future use
+			File.open("#{ENV['HOME']}/.cap_shell_history", 'w') {|f| 
+				reader::HISTORY.to_a.uniq.each { |h|
+					f.write ("#{h}\n")
+				}
+			}
 
       @bgthread.kill
     end
