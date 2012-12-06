@@ -202,13 +202,27 @@ HELP
         trap("INT", previous)
       end
 
-      # Return the object that will be used to query input from the console.
-      # The returned object will quack (more or less) like Readline.
-      def reader
-        @reader ||= begin
-          #require 'rb-readline'
-          require 'readline'
-          Readline
+			# Return the object that will be used to query input from the console.
+			# The returned object will quack (more or less) like Readline.
+			#
+			def reader
+			@reader ||= begin
+				#require 'rb-readline'
+					require 'readline'
+
+					comp = proc { |s| 
+						prefix=""
+          	prefix = "!" if s[0] == ?!
+						
+						tasks = @configuration.task_list(:all)
+						task_list = tasks.map { |t| prefix + t.fully_qualified_name }
+						task_list.grep( /^#{Regexp.escape(s)}/ ) 
+					}
+
+					Readline.completion_append_character = " "
+					Readline.completion_proc = comp
+
+					Readline
         rescue LoadError
           ReadlineFallback
         end
